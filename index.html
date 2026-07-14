@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Toothbrush">
+<meta name="theme-color" content="#7fd8f7">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<title>Thomas's Toothbrush Timer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Comic Sans MS", "Comic Sans", sans-serif;
+    background: linear-gradient(180deg, #7fd8f7 0%, #b6f0e3 60%, #d8f7c9 100%);
+    color: #24425c;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    position: fixed;
+    inset: 0;
+  }
+
+  .screen {
+    display: none;
+    position: absolute;
+    inset: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  .screen.active { display: flex; }
+
+  h1 { font-size: clamp(1.6rem, 5vw, 2.6rem); margin-bottom: 4px; }
+  .subtitle { font-size: clamp(1rem, 3vw, 1.4rem); opacity: .8; margin-bottom: 18px; }
+
+  .big-btn {
+    font-family: inherit;
+    font-size: clamp(1.4rem, 5vw, 2.2rem);
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(180deg, #ff9f43, #ff7846);
+    border: none;
+    border-radius: 60px;
+    padding: 22px 54px;
+    box-shadow: 0 8px 0 #d95d2f, 0 12px 24px rgba(0,0,0,.18);
+    cursor: pointer;
+    transition: transform .1s ease;
+  }
+  .big-btn:active { transform: translateY(5px); box-shadow: 0 3px 0 #d95d2f; }
+
+  #muteBtn {
+    position: absolute;
+    top: max(14px, env(safe-area-inset-top));
+    right: 16px;
+    z-index: 50;
+    font-size: 1.6rem;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,.75);
+    box-shadow: 0 3px 8px rgba(0,0,0,.15);
+    cursor: pointer;
+  }
+
+  /* ---------- start screen ---------- */
+  #startTooth { width: min(42vw, 30vh, 260px); margin-bottom: 14px; animation: bob 2.4s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
+
+  /* ---------- brushing screen ---------- */
+  #screen-brush { justify-content: space-between; gap: 6px; }
+
+  #brushHeader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    width: 100%;
+    max-width: 700px;
+    flex: 0 0 auto;
+    padding-top: 4px;
+  }
+  #timerWrap { position: relative; width: clamp(84px, 16vmin, 130px); height: clamp(84px, 16vmin, 130px); flex: 0 0 auto; }
+  #timerWrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  #ringBg { fill: none; stroke: rgba(255,255,255,.6); stroke-width: 10; }
+  #ringFg { fill: none; stroke: #ff7846; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset .3s linear; }
+  #timeText {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(1.3rem, 4vmin, 2rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  #message { flex: 0 1 auto; min-width: 0; }
+  #msgQuad { font-size: clamp(1.4rem, 5.5vmin, 2.4rem); font-weight: 800; }
+  #msgSurface {
+    font-size: clamp(1.05rem, 4vmin, 1.6rem);
+    margin-top: 4px;
+    background: rgba(255,255,255,.7);
+    border-radius: 30px;
+    padding: 6px 18px;
+    display: inline-block;
+  }
+  .pop { animation: pop .45s ease; }
+  @keyframes pop { 0% { transform: scale(.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+  #mouthBox { flex: 1 1 auto; width: 100%; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  #mouthSvg { width: auto; height: 100%; max-width: 96vw; max-height: 100%; }
+
+  /* teeth + quadrant states */
+  .tooth { fill: #ffffff; stroke: #cdd9e5; stroke-width: 2.5; transition: fill .3s ease; }
+  .quad.active .tooth { fill: #fff3b0; stroke: #f5b301; }
+  .quad.active { animation: quadPulse 1s ease-in-out infinite; }
+  @keyframes quadPulse { 0%,100% { filter: drop-shadow(0 0 4px #ffd93d); } 50% { filter: drop-shadow(0 0 14px #ffd93d); } }
+  .quad.done .tooth { fill: #eafcff; stroke: #7fd8f7; }
+  .quad-star { font-size: 34px; opacity: 0; }
+  .quad.done .quad-star { opacity: 1; animation: starPop .6s ease; }
+  @keyframes starPop { 0% { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.4); } 100% { transform: scale(1); } }
+
+  #brush { transition: transform .8s cubic-bezier(.45,0,.25,1.3); will-change: transform; }
+  #brushInner { animation: scrub .5s ease-in-out infinite; }
+  @keyframes scrub {
+    0%   { transform: translate(0px, 0px); }
+    25%  { transform: translate(6px, -5px); }
+    50%  { transform: translate(0px, -9px); }
+    75%  { transform: translate(-6px, -5px); }
+    100% { transform: translate(0px, 0px); }
+  }
+  .paused #brushInner, .paused .quad.active { animation-play-state: paused; }
+
+  /* progress row */
+  #progressRow { display: flex; gap: clamp(10px, 4vw, 28px); flex: 0 0 auto; padding-bottom: 6px; }
+  .prog {
+    width: clamp(48px, 10vmin, 68px); height: clamp(48px, 10vmin, 68px);
+    border-radius: 50%;
+    background: rgba(255,255,255,.7);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(1.5rem, 6vmin, 2.2rem);
+    box-shadow: 0 3px 6px rgba(0,0,0,.12);
+    transition: background .3s ease;
+  }
+  .prog.active { background: #ffd93d; animation: bounce .7s ease-in-out infinite; }
+  .prog.done { background: #b8f2c9; }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+  /* pause overlay */
+  #pauseOverlay {
+    display: none;
+    position: absolute; inset: 0;
+    background: rgba(36, 66, 92, .55);
+    z-index: 40;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    color: #fff;
+  }
+  #pauseOverlay.show { display: flex; }
+  #pauseOverlay h2 { font-size: clamp(1.6rem, 6vw, 2.6rem); }
+  #pauseOverlay p { font-size: clamp(1.1rem, 4vw, 1.5rem); }
+  .small-btn {
+    font-family: inherit;
+    font-size: clamp(1rem, 3.5vw, 1.3rem);
+    font-weight: 700;
+    color: #24425c;
+    background: rgba(255,255,255,.92);
+    border: none;
+    border-radius: 40px;
+    padding: 12px 28px;
+    cursor: pointer;
+  }
+
+  /* ---------- celebration ---------- */
+  #doneTooth { width: min(40vw, 28vh, 240px); margin-bottom: 10px; animation: partyBob 1s ease-in-out infinite; }
+  @keyframes partyBob { 0%,100% { transform: rotate(-6deg) scale(1); } 50% { transform: rotate(6deg) scale(1.08); } }
+  #confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .confetto { position: absolute; top: -30px; animation: fall linear forwards; }
+  .confetto.square { width: 12px; height: 12px; border-radius: 3px; }
+  .confetto.emoji { font-size: 24px; }
+  @keyframes fall {
+    0%   { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: .9; }
+  }
+</style>
+</head>
+<body>
+
+<button id="muteBtn" aria-label="Toggle sound">🔊</button>
+
+<!-- ================= START ================= -->
+<div id="screen-start" class="screen active">
+  <svg id="startTooth" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M60 8 C34 8 20 26 20 46 c0 16 6 24 10 40 c3 12 5 26 14 26 c10 0 6-22 16-22 s6 22 16 22 c9 0 11-14 14-26 c4-16 10-24 10-40 C100 26 86 8 60 8 Z"
+          fill="#ffffff" stroke="#cdd9e5" stroke-width="4"/>
+    <circle cx="45" cy="46" r="5" fill="#24425c"/>
+    <circle cx="75" cy="46" r="5" fill="#24425c"/>
+    <path d="M44 62 Q60 76 76 62" fill="none" stroke="#24425c" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="34" cy="58" r="6" fill="#ffb3c1" opacity=".8"/>
+    <circle cx="86" cy="58" r="6" fill="#ffb3c1" opacity=".8"/>
+    <path d="M88 20 l3 7 7 3 -7 3 -3 7 -3-7 -7-3 7-3 Z" fill="#ffd93d"/>
+  </svg>
+  <h1>Toothbrush Time!</h1>
+  <p class="subtitle">2 minutes = super sparkly teeth ✨</p>
+  <button id="startBtn" class="big-btn">Start Brushing!</button>
+</div>
+
+<!-- ================= BRUSHING ================= -->
+<div id="screen-brush" class="screen">
+  <div id="brushHeader">
+    <div id="timerWrap">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle id="ringBg" cx="50" cy="50" r="44"/>
+        <circle id="ringFg" cx="50" cy="50" r="44"/>
+      </svg>
+      <div id="timeText">2:00</div>
+    </div>
+    <div id="message">
+      <div id="msgQuad">Top Right ↗️</div>
+      <div id="msgSurface">🪥 Outside</div>
+    </div>
+  </div>
+
+  <div id="mouthBox">
+    <svg id="mouthSvg" viewBox="0 0 400 330" aria-label="Cartoon mouth showing which teeth to brush">
+      <!-- lips + mouth -->
+      <ellipse cx="200" cy="163" rx="176" ry="132" fill="#ff6b8a"/>
+      <ellipse cx="200" cy="163" rx="150" ry="110" fill="#6d1f38"/>
+      <!-- tongue -->
+      <path d="M130 250 Q200 215 270 250 Q265 282 200 284 Q135 282 130 250 Z" fill="#e2557b"/>
+      <path d="M200 240 Q200 262 200 276" stroke="#c73e63" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- teeth quadrants: screen position matches child's mirror view -->
+      <g id="quad-ur" class="quad"></g>
+      <g id="quad-ul" class="quad"></g>
+      <g id="quad-ll" class="quad"></g>
+      <g id="quad-lr" class="quad"></g>
+      <!-- toothbrush: bristle-pad centre sits at this group's origin -->
+      <g id="brush">
+        <g id="brushInner">
+          <g transform="translate(28, 16)">
+            <rect x="0" y="-9" width="120" height="18" rx="9" fill="#4aa3ff"/>
+            <rect x="0" y="-9" width="24" height="18" rx="9" fill="#2e86e0"/>
+            <rect x="-60" y="-8" width="64" height="16" rx="8" fill="#ffffff" stroke="#cdd9e5" stroke-width="2"/>
+            <g fill="#7ed957">
+              <rect x="-56" y="-24" width="7" height="16" rx="3"/>
+              <rect x="-46" y="-24" width="7" height="16" rx="3"/>
+              <rect x="-36" y="-24" width="7" height="16" rx="3"/>
+              <rect x="-26" y="-24" width="7" height="16" rx="3"/>
+              <rect x="-16" y="-24" width="7" height="16" rx="3"/>
+              <rect x="-6"  y="-24" width="7" height="16" rx="3"/>
+            </g>
+          </g>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <div id="progressRow">
+    <div class="prog" data-q="0">🦷</div>
+    <div class="prog" data-q="1">🦷</div>
+    <div class="prog" data-q="2">🦷</div>
+    <div class="prog" data-q="3">🦷</div>
+  </div>
+
+  <div id="pauseOverlay">
+    <h2>⏸️ Paused</h2>
+    <p>Tap anywhere to keep brushing!</p>
+    <button id="restartBtn" class="small-btn">↩️ Start over</button>
+    <button id="quitBtn" class="small-btn">🏠 Back to start</button>
+  </div>
+</div>
+
+<!-- ================= CELEBRATION ================= -->
+<div id="screen-done" class="screen">
+  <div id="confetti"></div>
+  <svg id="doneTooth" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M60 8 C34 8 20 26 20 46 c0 16 6 24 10 40 c3 12 5 26 14 26 c10 0 6-22 16-22 s6 22 16 22 c9 0 11-14 14-26 c4-16 10-24 10-40 C100 26 86 8 60 8 Z"
+          fill="#ffffff" stroke="#cdd9e5" stroke-width="4"/>
+    <path d="M38 44 l4 9 9 4 -9 4 -4 9 -4-9 -9-4 9-4 Z" fill="#ffd93d"/>
+    <path d="M82 44 l4 9 9 4 -9 4 -4 9 -4-9 -9-4 9-4 Z" fill="#ffd93d"/>
+    <path d="M42 66 Q60 84 78 66" fill="none" stroke="#24425c" stroke-width="4" stroke-linecap="round"/>
+    <path d="M14 14 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5-6 -6-2.5 6-2.5 Z" fill="#7fd8f7"/>
+    <path d="M102 96 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5-6 -6-2.5 6-2.5 Z" fill="#7fd8f7"/>
+  </svg>
+  <h1>All clean! 🎉</h1>
+  <p class="subtitle">Amazing brushing, superstar!</p>
+  <button id="againBtn" class="big-btn">Brush again</button>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ------- config -------
+  const QUAD_SECONDS = 30;
+  const SURFACE_SECONDS = 10;          // outside / inside / chewing tops
+  const TOTAL_SECONDS = QUAD_SECONDS * 4;
+  // ?speed=10 makes time run 10x faster (for testing)
+  const SPEED = Math.max(0.1, parseFloat(new URLSearchParams(location.search).get('speed')) || 1);
+
+  // Standard dental sequence, shown mirror-style (child's right = screen right)
+  const QUADS = [
+    { id: 'quad-ur', label: 'Top Right ↗️',    cx: 285, cy: 82,  edgeY: 112, flip: 1  },
+    { id: 'quad-ul', label: 'Top Left ↖️',     cx: 115, cy: 82,  edgeY: 112, flip: -1 },
+    { id: 'quad-ll', label: 'Bottom Left ↙️',  cx: 115, cy: 244, edgeY: 214, flip: -1 },
+    { id: 'quad-lr', label: 'Bottom Right ↘️', cx: 285, cy: 244, edgeY: 214, flip: 1  },
+  ];
+  const SURFACES = [
+    { label: '🪥 Outside the teeth' },
+    { label: '✨ Inside the teeth' },
+    { label: '😬 Chewing tops' },
+  ];
+
+  // ------- elements -------
+  const $ = id => document.getElementById(id);
+  const screens = { start: $('screen-start'), brush: $('screen-brush'), done: $('screen-done') };
+  const ringFg = $('ringFg'), timeText = $('timeText');
+  const msgQuad = $('msgQuad'), msgSurface = $('msgSurface');
+  const brushEl = $('brush');
+  const pauseOverlay = $('pauseOverlay');
+  const progs = [...document.querySelectorAll('.prog')];
+  const RING_LEN = 2 * Math.PI * 44;
+  ringFg.style.strokeDasharray = RING_LEN;
+
+  // ------- build the teeth -------
+  // 4 teeth per quadrant, arced rows; index 0 = nearest the front centre
+  const TOOTH_X = [22, 59, 96, 133];              // offset from mouth centre (x = 200)
+  const UPPER = { top: [54, 57, 62, 70], h: [48, 46, 42, 38] };
+  const LOWER = { bot: [268, 265, 260, 252], h: [42, 40, 38, 34] };
+
+  function buildQuad(q) {
+    const g = $(q.id);
+    const upper = q.cy < 163;
+    for (let i = 0; i < 4; i++) {
+      const cx = 200 + q.flip * TOOTH_X[i];
+      const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const h = upper ? UPPER.h[i] : LOWER.h[i];
+      const y = upper ? UPPER.top[i] : LOWER.bot[i] - h;
+      r.setAttribute('x', cx - 15);
+      r.setAttribute('y', y);
+      r.setAttribute('width', 30);
+      r.setAttribute('height', h);
+      r.setAttribute('rx', 10);
+      r.setAttribute('class', 'tooth');
+      g.appendChild(r);
+    }
+    const star = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    star.setAttribute('x', q.cx);
+    star.setAttribute('y', upper ? q.cy - 42 : q.cy + 56);
+    star.setAttribute('text-anchor', 'middle');
+    star.setAttribute('class', 'quad-star');
+    star.textContent = '⭐';
+    g.appendChild(star);
+  }
+  QUADS.forEach(buildQuad);
+
+  // ------- audio (synthesised, no files) -------
+  let audioCtx = null;
+  let muted = false;
+  try { muted = localStorage.getItem('tt-muted') === '1'; } catch (e) {}
+  const muteBtn = $('muteBtn');
+  function renderMute() { muteBtn.textContent = muted ? '🔇' : '🔊'; }
+  renderMute();
+  muteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    muted = !muted;
+    try { localStorage.setItem('tt-muted', muted ? '1' : '0'); } catch (err) {}
+    renderMute();
+    if (!muted) tone(880, 0, 0.12, 'sine', 0.15);
+  });
+
+  function ensureAudio() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function tone(freq, when, dur, type = 'sine', gain = 0.2) {
+    if (muted || !audioCtx) return;
+    const t = audioCtx.currentTime + when;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g).connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + dur + 0.05);
+  }
+  const sfx = {
+    start:    () => tone(659, 0, 0.18, 'triangle', 0.22),
+    surface:  () => tone(740, 0, 0.15, 'sine', 0.16),
+    quadrant: () => { tone(659, 0, 0.16, 'triangle', 0.22); tone(784, 0.14, 0.22, 'triangle', 0.22); },
+    fanfare:  () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.17, 0.3, 'triangle', 0.24)); },
+  };
+
+  // ------- wake lock -------
+  let wakeLock = null;
+  async function requestWakeLock() {
+    try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (e) { wakeLock = null; }
+  }
+  function releaseWakeLock() {
+    wakeLock?.release().catch(() => {});
+    wakeLock = null;
+  }
+
+  // ------- state machine -------
+  let state = 'idle';                 // idle | brushing | paused | done
+  let elapsed = 0;
+  let lastTs = null;
+  let curQuad = -1, curSurface = -1;
+  let rafId = null;
+
+  function show(name) {
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+  }
+
+  function placeBrush(qi, si) {
+    const q = QUADS[qi];
+    let x = q.cx, y = q.cy, rot = 0, scaleX = q.flip;
+    const upper = qi < 2;
+    if (si === 0) {                    // outside: flat on the front of the teeth
+      rot = 0;
+    } else if (si === 1) {             // inside: tucked behind, tilted the other way
+      rot = upper ? 18 : -18;
+      y += upper ? 10 : -10;
+    } else {                           // chewing tops: along the biting edge
+      y = q.edgeY + (upper ? 14 : -14);
+      rot = upper ? 0 : 180;
+      if (!upper) scaleX = -q.flip;    // keep the handle pointing outward when upside down
+    }
+    brushEl.style.transform =
+      `translate(${x}px, ${y}px) scaleX(${scaleX}) rotate(${rot}deg)`;
+  }
+
+  function setQuadClasses() {
+    QUADS.forEach((q, i) => {
+      const g = $(q.id);
+      g.classList.toggle('active', i === curQuad && state !== 'done');
+      g.classList.toggle('done', i < curQuad || state === 'done');
+      progs[i].classList.toggle('active', i === curQuad && state !== 'done');
+      progs[i].classList.toggle('done', i < curQuad || state === 'done');
+      progs[i].textContent = (i < curQuad || state === 'done') ? '⭐' : '🦷';
+    });
+  }
+
+  function popText(el, text) {
+    el.textContent = text;
+    el.classList.remove('pop');
+    void el.offsetWidth;               // restart the animation
+    el.classList.add('pop');
+  }
+
+  function updatePhase() {
+    const qi = Math.min(3, Math.floor(elapsed / QUAD_SECONDS));
+    const si = Math.min(2, Math.floor((elapsed % QUAD_SECONDS) / SURFACE_SECONDS));
+    if (qi !== curQuad) {
+      if (curQuad !== -1) sfx.quadrant();
+      curQuad = qi;
+      curSurface = si;
+      popText(msgQuad, QUADS[qi].label);
+      popText(msgSurface, SURFACES[si].label);
+      setQuadClasses();
+      placeBrush(qi, si);
+    } else if (si !== curSurface) {
+      curSurface = si;
+      sfx.surface();
+      popText(msgSurface, SURFACES[si].label);
+      placeBrush(qi, si);
+    }
+  }
+
+  function updateClock() {
+    const remaining = Math.max(0, TOTAL_SECONDS - elapsed);
+    const shown = Math.ceil(remaining);
+    timeText.textContent = `${Math.floor(shown / 60)}:${String(shown % 60).padStart(2, '0')}`;
+    ringFg.style.strokeDashoffset = RING_LEN * (elapsed / TOTAL_SECONDS);
+  }
+
+  function loop(ts) {
+    if (state !== 'brushing') return;
+    if (lastTs !== null) {
+      const dt = Math.min((ts - lastTs) / 1000, 0.5) * SPEED;
+      elapsed += dt;
+    }
+    lastTs = ts;
+    if (elapsed >= TOTAL_SECONDS) { finish(); return; }
+    updatePhase();
+    updateClock();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function startBrushing() {
+    ensureAudio();
+    sfx.start();
+    elapsed = 0;
+    lastTs = null;
+    curQuad = -1;
+    curSurface = -1;
+    state = 'brushing';
+    screens.brush.classList.remove('paused');
+    pauseOverlay.classList.remove('show');
+    show('brush');
+    updatePhase();
+    updateClock();
+    requestWakeLock();
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function pause() {
+    if (state !== 'brushing') return;
+    state = 'paused';
+    cancelAnimationFrame(rafId);
+    screens.brush.classList.add('paused');
+    pauseOverlay.classList.add('show');
+  }
+
+  function resume() {
+    if (state !== 'paused') return;
+    ensureAudio();
+    state = 'brushing';
+    lastTs = null;
+    screens.brush.classList.remove('paused');
+    pauseOverlay.classList.remove('show');
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function finish() {
+    state = 'done';
+    cancelAnimationFrame(rafId);
+    setQuadClasses();
+    show('done');
+    sfx.fanfare();
+    launchConfetti();
+    releaseWakeLock();
+  }
+
+  function goHome() {
+    state = 'idle';
+    cancelAnimationFrame(rafId);
+    pauseOverlay.classList.remove('show');
+    screens.brush.classList.remove('paused');
+    show('start');
+    releaseWakeLock();
+  }
+
+  // ------- confetti -------
+  const CONFETTI_COLORS = ['#ff6b8a', '#ffd93d', '#7fd8f7', '#7ed957', '#ff9f43', '#b28dff'];
+  function launchConfetti() {
+    const box = $('confetti');
+    box.innerHTML = '';
+    for (let i = 0; i < 90; i++) {
+      const c = document.createElement('div');
+      const emoji = i % 9 === 0;
+      c.className = 'confetto ' + (emoji ? 'emoji' : 'square');
+      if (emoji) c.textContent = ['⭐', '✨', '🦷', '🪥'][i % 4];
+      else c.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.animationDuration = (2.2 + Math.random() * 2.5) + 's';
+      c.style.animationDelay = (Math.random() * 1.2) + 's';
+      box.appendChild(c);
+    }
+  }
+
+  // ------- events -------
+  $('startBtn').addEventListener('click', startBrushing);
+  $('againBtn').addEventListener('click', startBrushing);
+  $('restartBtn').addEventListener('click', (e) => { e.stopPropagation(); startBrushing(); });
+  $('quitBtn').addEventListener('click', (e) => { e.stopPropagation(); goHome(); });
+
+  screens.brush.addEventListener('click', () => {
+    if (state === 'brushing') pause();
+    else if (state === 'paused') resume();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      if (state === 'brushing') pause();
+    } else if (state === 'brushing' || state === 'paused') {
+      requestWakeLock();
+    }
+  });
+})();
+</script>
+</body>
+</html>

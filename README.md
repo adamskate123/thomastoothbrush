@@ -8,6 +8,8 @@ The mouth is shown **mirror-style**: "Top Right" lights up on the right side of 
 
 ## Features
 
+- 👨‍👩‍👧‍👦 Multiple brushers: a start menu where each kid picks their own profile (name + emoji character + bubble color). First launch shows just a **+** button — add brushers over time. Tap a profile to brush; press-and-hold it to change or delete it.
+- ⭐ Brush counter per brusher: every finished 2-minute brush adds a star to their profile and gets a shout-out on the celebration screen ("That's brush #12, Thomas!")
 - ⏱️ Accurate 2-minute countdown with a progress ring
 - 🦷 Four-quadrant cartoon mouth with an animated scrubbing toothbrush
 - 🔊 Gentle chimes when it's time to move on, fanfare at the end (mute button included, remembered between visits)

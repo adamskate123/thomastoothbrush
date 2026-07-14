@@ -70,9 +70,128 @@
     cursor: pointer;
   }
 
-  /* ---------- start screen ---------- */
-  #startTooth { width: min(42vw, 30vh, 260px); margin-bottom: 14px; animation: bob 2.4s ease-in-out infinite; }
+  /* ---------- user select ---------- */
+  #usersTooth { width: min(24vw, 16vh, 130px); margin-bottom: 6px; animation: bob 2.4s ease-in-out infinite; }
   @keyframes bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
+  #userGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(18px, 4vw, 36px);
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 760px;
+    margin-top: 18px;
+  }
+  .user-bubble {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    color: inherit;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+  }
+  .avatar-circle {
+    position: relative;
+    width: clamp(96px, 18vmin, 140px);
+    height: clamp(96px, 18vmin, 140px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(48px, 9vmin, 72px);
+    box-shadow: 0 6px 14px rgba(0,0,0,.15), inset 0 -6px 0 rgba(0,0,0,.08);
+    transition: transform .1s ease;
+  }
+  .user-bubble:active .avatar-circle { transform: scale(.93); }
+  .user-bubble .uname { font-size: clamp(1.05rem, 3.5vmin, 1.4rem); font-weight: 700; }
+  .count-badge {
+    position: absolute;
+    top: -4px;
+    right: -10px;
+    background: #fff;
+    border-radius: 30px;
+    padding: 4px 10px;
+    font-size: .95rem;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  }
+  .plus-bubble .avatar-circle {
+    background: rgba(255,255,255,.55);
+    border: 4px dashed #6fb8d9;
+    color: #3d7ea6;
+    box-shadow: none;
+  }
+
+  /* ---------- add/edit user ---------- */
+  #nameInput {
+    font-family: inherit;
+    font-size: clamp(1.3rem, 4.5vmin, 1.8rem);
+    font-weight: 700;
+    text-align: center;
+    color: #24425c;
+    background: rgba(255,255,255,.85);
+    border: 3px solid #6fb8d9;
+    border-radius: 40px;
+    padding: 12px 20px;
+    width: min(80vw, 340px);
+    outline: none;
+    user-select: text;
+    -webkit-user-select: text;
+  }
+  #nameInput:focus { border-color: #ff9f43; }
+  .picker-label { margin: 16px 0 8px; font-size: clamp(1rem, 3vmin, 1.25rem); font-weight: 700; opacity: .75; }
+  #emojiGrid, #colorGrid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 580px; }
+  .emoji-opt {
+    font-family: inherit;
+    font-size: clamp(1.7rem, 6vmin, 2.4rem);
+    width: clamp(56px, 10vmin, 72px);
+    height: clamp(56px, 10vmin, 72px);
+    border-radius: 50%;
+    border: 3px solid transparent;
+    background: rgba(255,255,255,.6);
+    cursor: pointer;
+    padding: 0;
+  }
+  .color-opt {
+    width: clamp(44px, 8vmin, 56px);
+    height: clamp(44px, 8vmin, 56px);
+    border-radius: 50%;
+    border: 3px solid rgba(0,0,0,.08);
+    cursor: pointer;
+    padding: 0;
+  }
+  .emoji-opt.selected, .color-opt.selected {
+    border-color: #24425c;
+    box-shadow: 0 0 0 4px rgba(255,255,255,.9), 0 0 0 7px #ff9f43;
+  }
+  #editBtns { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 22px; }
+  .small-btn { box-shadow: 0 3px 8px rgba(0,0,0,.12); }
+  .small-btn.danger { background: #ff6b6b; color: #fff; }
+  .small-btn.danger.confirm { background: #d63031; }
+  .back-btn {
+    position: absolute;
+    top: max(14px, env(safe-area-inset-top));
+    left: 16px;
+    z-index: 50;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #24425c;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,.75);
+    box-shadow: 0 3px 8px rgba(0,0,0,.15);
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* ---------- start screen ---------- */
+  #startAvatar { margin-bottom: 14px; animation: bob 2.4s ease-in-out infinite; }
 
   /* ---------- brushing screen ---------- */
   #screen-brush { justify-content: space-between; gap: 6px; }
@@ -195,9 +314,9 @@
 
 <button id="muteBtn" aria-label="Toggle sound">🔊</button>
 
-<!-- ================= START ================= -->
-<div id="screen-start" class="screen active">
-  <svg id="startTooth" viewBox="0 0 120 120" aria-hidden="true">
+<!-- ================= CHOOSE USER ================= -->
+<div id="screen-users" class="screen active">
+  <svg id="usersTooth" viewBox="0 0 120 120" aria-hidden="true">
     <path d="M60 8 C34 8 20 26 20 46 c0 16 6 24 10 40 c3 12 5 26 14 26 c10 0 6-22 16-22 s6 22 16 22 c9 0 11-14 14-26 c4-16 10-24 10-40 C100 26 86 8 60 8 Z"
           fill="#ffffff" stroke="#cdd9e5" stroke-width="4"/>
     <circle cx="45" cy="46" r="5" fill="#24425c"/>
@@ -207,7 +326,32 @@
     <circle cx="86" cy="58" r="6" fill="#ffb3c1" opacity=".8"/>
     <path d="M88 20 l3 7 7 3 -7 3 -3 7 -3-7 -7-3 7-3 Z" fill="#ffd93d"/>
   </svg>
-  <h1>Toothbrush Time!</h1>
+  <h1>Who's brushing?</h1>
+  <p class="subtitle" id="usersHint">Tap the + to add a brusher!</p>
+  <div id="userGrid"></div>
+</div>
+
+<!-- ================= ADD / EDIT USER ================= -->
+<div id="screen-edituser" class="screen">
+  <h1 id="editTitle">New brusher</h1>
+  <p class="picker-label">What's your name?</p>
+  <input id="nameInput" type="text" maxlength="12" placeholder="Name" autocomplete="off" autocapitalize="words" enterkeyhint="done">
+  <p class="picker-label">Pick your character</p>
+  <div id="emojiGrid"></div>
+  <p class="picker-label">Pick a color</p>
+  <div id="colorGrid"></div>
+  <div id="editBtns">
+    <button id="saveUserBtn" class="big-btn">Save</button>
+    <button id="cancelUserBtn" class="small-btn">Cancel</button>
+    <button id="deleteUserBtn" class="small-btn danger">🗑️ Delete</button>
+  </div>
+</div>
+
+<!-- ================= START ================= -->
+<div id="screen-start" class="screen">
+  <button id="backBtn" class="back-btn" aria-label="Back to brushers">←</button>
+  <div id="startAvatar" class="avatar-circle"></div>
+  <h1 id="readyText">Toothbrush Time!</h1>
   <p class="subtitle">2 minutes = super sparkly teeth ✨</p>
   <button id="startBtn" class="big-btn">Start Brushing!</button>
 </div>
@@ -290,7 +434,7 @@
     <path d="M102 96 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5-6 -6-2.5 6-2.5 Z" fill="#7fd8f7"/>
   </svg>
   <h1>All clean! 🎉</h1>
-  <p class="subtitle">Amazing brushing, superstar!</p>
+  <p class="subtitle" id="doneSubtitle">Amazing brushing, superstar!</p>
   <button id="againBtn" class="big-btn">Brush again</button>
 </div>
 
@@ -320,7 +464,13 @@
 
   // ------- elements -------
   const $ = id => document.getElementById(id);
-  const screens = { start: $('screen-start'), brush: $('screen-brush'), done: $('screen-done') };
+  const screens = {
+    users: $('screen-users'),
+    edituser: $('screen-edituser'),
+    start: $('screen-start'),
+    brush: $('screen-brush'),
+    done: $('screen-done'),
+  };
   const ringFg = $('ringFg'), timeText = $('timeText');
   const msgQuad = $('msgQuad'), msgSurface = $('msgSurface');
   const brushEl = $('brush');
@@ -403,6 +553,124 @@
     quadrant: () => { tone(659, 0, 0.16, 'triangle', 0.22); tone(784, 0.14, 0.22, 'triangle', 0.22); },
     fanfare:  () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.17, 0.3, 'triangle', 0.24)); },
   };
+
+  // ------- user profiles -------
+  const AVATAR_EMOJIS = ['🦁', '🦄', '🤖', '🐸', '🦖', '🚀', '🐱', '🐶', '🐼', '🦊', '🐙', '⚽'];
+  const AVATAR_COLORS = ['#ffd93d', '#7fd8f7', '#b8f2c9', '#ffb3c1', '#b28dff', '#ff9f43'];
+  let users = [];
+  try {
+    const stored = JSON.parse(localStorage.getItem('tt-users'));
+    if (Array.isArray(stored)) users = stored;
+  } catch (e) {}
+  function saveUsers() {
+    try { localStorage.setItem('tt-users', JSON.stringify(users)); } catch (e) {}
+  }
+  let currentUser = null;
+  let editingId = null;                // null while adding a new user
+  let selEmoji = AVATAR_EMOJIS[0];
+  let selColor = AVATAR_COLORS[0];
+  const nameInput = $('nameInput');
+
+  // long-press opens the editor; a plain tap selects. The capture-phase click
+  // handler swallows the click that follows a completed long-press.
+  function attachLongPress(el, fn) {
+    let timer = null, fired = false;
+    el.addEventListener('pointerdown', () => {
+      fired = false;
+      timer = setTimeout(() => { fired = true; fn(); }, 700);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev =>
+      el.addEventListener(ev, () => clearTimeout(timer)));
+    el.addEventListener('click', (e) => {
+      if (fired) { e.stopImmediatePropagation(); e.preventDefault(); }
+    }, true);
+    el.addEventListener('contextmenu', e => e.preventDefault());
+  }
+
+  function makeAvatar(user) {
+    const av = document.createElement('span');
+    av.className = 'avatar-circle';
+    av.style.background = user.color;
+    av.textContent = user.emoji;
+    if (user.brushCount > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'count-badge';
+      badge.textContent = '⭐' + user.brushCount;
+      av.appendChild(badge);
+    }
+    return av;
+  }
+
+  function renderUsers() {
+    const grid = $('userGrid');
+    grid.innerHTML = '';
+    users.forEach(u => {
+      const b = document.createElement('button');
+      b.className = 'user-bubble';
+      b.appendChild(makeAvatar(u));
+      const name = document.createElement('span');
+      name.className = 'uname';
+      name.textContent = u.name;
+      b.appendChild(name);
+      attachLongPress(b, () => openEditor(u));
+      b.addEventListener('click', () => selectUser(u));
+      grid.appendChild(b);
+    });
+    const plus = document.createElement('button');
+    plus.className = 'user-bubble plus-bubble';
+    plus.innerHTML = '<span class="avatar-circle">＋</span><span class="uname">Add</span>';
+    plus.addEventListener('click', () => openEditor(null));
+    grid.appendChild(plus);
+    $('usersHint').textContent = users.length
+      ? 'Tap your face to start! (Hold it to change it)'
+      : 'Tap the + to add a brusher!';
+  }
+
+  function renderPickers() {
+    const eg = $('emojiGrid'), cg = $('colorGrid');
+    eg.innerHTML = '';
+    cg.innerHTML = '';
+    AVATAR_EMOJIS.forEach(em => {
+      const b = document.createElement('button');
+      b.className = 'emoji-opt' + (em === selEmoji ? ' selected' : '');
+      b.textContent = em;
+      b.addEventListener('click', () => { selEmoji = em; renderPickers(); });
+      eg.appendChild(b);
+    });
+    AVATAR_COLORS.forEach(col => {
+      const b = document.createElement('button');
+      b.className = 'color-opt' + (col === selColor ? ' selected' : '');
+      b.style.background = col;
+      b.setAttribute('aria-label', 'color ' + col);
+      b.addEventListener('click', () => { selColor = col; renderPickers(); });
+      cg.appendChild(b);
+    });
+  }
+
+  function openEditor(user) {
+    editingId = user ? user.id : null;
+    $('editTitle').textContent = user ? 'Change brusher' : 'New brusher';
+    nameInput.value = user ? user.name : '';
+    nameInput.placeholder = 'Name';
+    selEmoji = user ? user.emoji : AVATAR_EMOJIS[users.length % AVATAR_EMOJIS.length];
+    selColor = user ? user.color : AVATAR_COLORS[users.length % AVATAR_COLORS.length];
+    renderPickers();
+    const del = $('deleteUserBtn');
+    del.style.display = user ? '' : 'none';
+    del.textContent = '🗑️ Delete';
+    del.classList.remove('confirm');
+    show('edituser');
+  }
+
+  function selectUser(u) {
+    currentUser = u;
+    ensureAudio();
+    const av = $('startAvatar');
+    av.textContent = u.emoji;
+    av.style.background = u.color;
+    $('readyText').textContent = `Ready, ${u.name}?`;
+    show('start');
+  }
 
   // ------- wake lock -------
   let wakeLock = null;
@@ -541,6 +809,14 @@
     state = 'done';
     cancelAnimationFrame(rafId);
     setQuadClasses();
+    if (currentUser) {
+      currentUser.brushCount = (currentUser.brushCount || 0) + 1;
+      saveUsers();
+      $('doneSubtitle').textContent =
+        `That's brush #${currentUser.brushCount}, ${currentUser.name}! ⭐`;
+    } else {
+      $('doneSubtitle').textContent = 'Amazing brushing, superstar!';
+    }
     show('done');
     sfx.fanfare();
     launchConfetti();
@@ -552,7 +828,8 @@
     cancelAnimationFrame(rafId);
     pauseOverlay.classList.remove('show');
     screens.brush.classList.remove('paused');
-    show('start');
+    renderUsers();
+    show('users');
     releaseWakeLock();
   }
 
@@ -577,6 +854,40 @@
   // ------- events -------
   $('startBtn').addEventListener('click', startBrushing);
   $('againBtn').addEventListener('click', startBrushing);
+  $('backBtn').addEventListener('click', goHome);
+  $('cancelUserBtn').addEventListener('click', () => { renderUsers(); show('users'); });
+  $('saveUserBtn').addEventListener('click', () => {
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.placeholder = 'Type a name!'; nameInput.focus(); return; }
+    if (editingId) {
+      const u = users.find(u => u.id === editingId);
+      if (u) { u.name = name; u.emoji = selEmoji; u.color = selColor; }
+    } else {
+      users.push({
+        id: Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36),
+        name, emoji: selEmoji, color: selColor, brushCount: 0,
+      });
+    }
+    saveUsers();
+    renderUsers();
+    show('users');
+  });
+  $('deleteUserBtn').addEventListener('click', (e) => {
+    const del = e.currentTarget;
+    if (!del.classList.contains('confirm')) {
+      del.classList.add('confirm');
+      del.textContent = 'Really delete?';
+      return;
+    }
+    users = users.filter(u => u.id !== editingId);
+    if (currentUser && currentUser.id === editingId) currentUser = null;
+    saveUsers();
+    renderUsers();
+    show('users');
+  });
+  nameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') nameInput.blur();
+  });
   $('restartBtn').addEventListener('click', (e) => { e.stopPropagation(); startBrushing(); });
   $('quitBtn').addEventListener('click', (e) => { e.stopPropagation(); goHome(); });
 
@@ -592,6 +903,8 @@
       requestWakeLock();
     }
   });
+
+  renderUsers();
 })();
 </script>
 </body>

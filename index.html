@@ -234,26 +234,52 @@
   #mouthBox { flex: 1 1 auto; width: 100%; display: flex; align-items: center; justify-content: center; min-height: 0; }
   #mouthSvg { width: auto; height: 100%; max-width: 96vw; max-height: 100%; }
 
-  /* teeth + quadrant states */
-  .tooth { fill: #ffffff; stroke: #cdd9e5; stroke-width: 2.5; transition: fill .3s ease; }
-  .quad.active .tooth { fill: #fff3b0; stroke: #f5b301; }
-  .quad.active { animation: quadPulse 1s ease-in-out infinite; }
-  @keyframes quadPulse { 0%,100% { filter: drop-shadow(0 0 4px #ffd93d); } 50% { filter: drop-shadow(0 0 14px #ffd93d); } }
-  .quad.done .tooth { fill: #eafcff; stroke: #7fd8f7; }
-  .quad-star { font-size: 34px; opacity: 0; }
-  .quad.done .quad-star { opacity: 1; animation: starPop .6s ease; }
+  /* teeth: white tooth, gloss, plaque overlay, crisp outline */
+  .tooth { fill: #ffffff; }
+  .tooth-shine { fill: #ffffff; opacity: .8; }
+  .tooth-outline { fill: none; stroke: #d5dde6; stroke-width: 2; stroke-linejoin: round; }
+  .plaque { fill: url(#plaquePat); transition: opacity .5s ease; }
+
+  /* quadrant highlight: pulsing opacity on a soft gradient (cheap on iPad,
+     unlike animating a drop-shadow filter, which re-rasterizes every frame) */
+  .quad-glow { fill: url(#glowGrad); opacity: 0; transition: opacity .45s ease; }
+  .quad.active .quad-glow { animation: glowPulse 1.8s ease-in-out infinite; }
+  @keyframes glowPulse { 0%,100% { opacity: .2; } 50% { opacity: .48; } }
+
+  .quad-star { font-size: 34px; opacity: 0; transition: opacity .3s ease; }
+  .quad-star.on { opacity: 1; animation: starPop .6s ease; }
   @keyframes starPop { 0% { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.4); } 100% { transform: scale(1); } }
 
-  #brush { transition: transform .8s cubic-bezier(.45,0,.25,1.3); will-change: transform; }
+  /* brush: positioned from JS each frame, so no CSS transition here */
+  #brush { transform-box: view-box; transform-origin: 0 0; will-change: transform; }
   #brushInner { animation: scrub .5s ease-in-out infinite; }
   @keyframes scrub {
     0%   { transform: translate(0px, 0px); }
-    25%  { transform: translate(6px, -5px); }
-    50%  { transform: translate(0px, -9px); }
-    75%  { transform: translate(-6px, -5px); }
+    25%  { transform: translate(5px, -4px); }
+    50%  { transform: translate(0px, -8px); }
+    75%  { transform: translate(-5px, -4px); }
     100% { transform: translate(0px, 0px); }
   }
-  .paused #brushInner, .paused .quad.active { animation-play-state: paused; }
+  .bristle { animation: bristleFlex .5s ease-in-out infinite; }
+  @keyframes bristleFlex { 0%,100% { transform: translateY(0); } 50% { transform: translateY(2.5px); } }
+
+  /* particle effects (foam, bubbles, sparkles) — pooled, animated from JS */
+  #fx > * { transform-box: view-box; transform-origin: 0 0; pointer-events: none; }
+
+  /* face */
+  .lid { animation: blink 5.4s ease-in-out infinite; }
+  @keyframes blink { 0%, 92%, 100% { transform: translateY(0); } 96% { transform: translateY(66px); } }
+  .eye-white, .eye-ball, .eye-happy { transition: opacity .25s ease; }
+  .eye-happy { opacity: 0; }
+  .brow { transition: transform .3s ease; }
+  #mouthSvg.happy .eye-white, #mouthSvg.happy .eye-ball { opacity: 0; }
+  #mouthSvg.happy .eye-happy { opacity: 1; }
+  #mouthSvg.happy .brow { transform: translateY(-7px); }
+
+  .paused #brushInner,
+  .paused .bristle,
+  .paused .lid,
+  .paused .quad.active .quad-glow { animation-play-state: paused; }
 
   /* progress row */
   #progressRow { display: flex; gap: clamp(10px, 4vw, 28px); flex: 0 0 auto; padding-bottom: 6px; }
@@ -373,36 +399,88 @@
   </div>
 
   <div id="mouthBox">
-    <svg id="mouthSvg" viewBox="0 0 400 330" aria-label="Cartoon mouth showing which teeth to brush">
-      <!-- lips + mouth -->
-      <ellipse cx="200" cy="163" rx="176" ry="132" fill="#ff6b8a"/>
-      <ellipse cx="200" cy="163" rx="150" ry="110" fill="#6d1f38"/>
-      <!-- tongue -->
-      <path d="M130 250 Q200 215 270 250 Q265 282 200 284 Q135 282 130 250 Z" fill="#e2557b"/>
-      <path d="M200 240 Q200 262 200 276" stroke="#c73e63" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <!-- teeth quadrants: screen position matches child's mirror view -->
-      <g id="quad-ur" class="quad"></g>
-      <g id="quad-ul" class="quad"></g>
-      <g id="quad-ll" class="quad"></g>
-      <g id="quad-lr" class="quad"></g>
-      <!-- toothbrush: bristle-pad centre sits at this group's origin -->
-      <g id="brush">
-        <g id="brushInner">
-          <g transform="translate(28, 16)">
-            <rect x="0" y="-9" width="120" height="18" rx="9" fill="#4aa3ff"/>
-            <rect x="0" y="-9" width="24" height="18" rx="9" fill="#2e86e0"/>
-            <rect x="-60" y="-8" width="64" height="16" rx="8" fill="#ffffff" stroke="#cdd9e5" stroke-width="2"/>
-            <g fill="#7ed957">
-              <rect x="-56" y="-24" width="7" height="16" rx="3"/>
-              <rect x="-46" y="-24" width="7" height="16" rx="3"/>
-              <rect x="-36" y="-24" width="7" height="16" rx="3"/>
-              <rect x="-26" y="-24" width="7" height="16" rx="3"/>
-              <rect x="-16" y="-24" width="7" height="16" rx="3"/>
-              <rect x="-6"  y="-24" width="7" height="16" rx="3"/>
+    <svg id="mouthSvg" viewBox="0 0 440 430" aria-label="Cartoon face showing which teeth to brush">
+      <defs>
+        <pattern id="plaquePat" width="12" height="12" patternUnits="userSpaceOnUse">
+          <rect width="12" height="12" fill="#e6d5a2"/>
+          <circle cx="3" cy="4" r="1.9" fill="#d3ba79"/>
+          <circle cx="9" cy="9" r="1.5" fill="#dbc68c"/>
+        </pattern>
+        <radialGradient id="glowGrad">
+          <stop offset="0%" stop-color="#fff4c2" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#fff4c2" stop-opacity="0"/>
+        </radialGradient>
+        <clipPath id="eyeClip"><circle cx="0" cy="0" r="30"/></clipPath>
+      </defs>
+
+      <!-- head + cheeks -->
+      <ellipse cx="220" cy="220" rx="206" ry="203" fill="#ffd9b0" stroke="#f0b98a" stroke-width="4"/>
+      <ellipse cx="62" cy="178" rx="30" ry="20" fill="#ff9ab0" opacity=".55"/>
+      <ellipse cx="378" cy="178" rx="30" ry="20" fill="#ff9ab0" opacity=".55"/>
+
+      <!-- eyes -->
+      <g transform="translate(148,96)">
+        <circle class="eye-white" r="30" fill="#ffffff" stroke="#e8c49b" stroke-width="2"/>
+        <g class="eye-ball" clip-path="url(#eyeClip)">
+          <circle cx="0" cy="4" r="14" fill="#24425c"/>
+          <circle cx="6" cy="-3" r="5" fill="#ffffff" opacity=".9"/>
+          <ellipse class="lid" cx="0" cy="-66" rx="32" ry="32" fill="#ffd9b0"/>
+        </g>
+        <path class="eye-happy" d="M-18 6 Q0 -14 18 6" fill="none" stroke="#24425c" stroke-width="6" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(292,96)">
+        <circle class="eye-white" r="30" fill="#ffffff" stroke="#e8c49b" stroke-width="2"/>
+        <g class="eye-ball" clip-path="url(#eyeClip)">
+          <circle cx="0" cy="4" r="14" fill="#24425c"/>
+          <circle cx="6" cy="-3" r="5" fill="#ffffff" opacity=".9"/>
+          <ellipse class="lid" cx="0" cy="-66" rx="32" ry="32" fill="#ffd9b0"/>
+        </g>
+        <path class="eye-happy" d="M-18 6 Q0 -14 18 6" fill="none" stroke="#24425c" stroke-width="6" stroke-linecap="round"/>
+      </g>
+      <path class="brow" d="M118 54 Q148 38 178 54" fill="none" stroke="#c98b53" stroke-width="8" stroke-linecap="round"/>
+      <path class="brow" d="M262 54 Q292 38 322 54" fill="none" stroke="#c98b53" stroke-width="8" stroke-linecap="round"/>
+
+      <!-- mouth: lips, then the dark opening -->
+      <ellipse cx="220" cy="278" rx="180" ry="136" fill="#ff6b8a"/>
+      <ellipse cx="220" cy="278" rx="158" ry="112" fill="#5e1b31"/>
+      <!-- tongue (behind everything in the mouth) -->
+      <path d="M124 322 Q220 268 316 322 Q310 372 220 376 Q130 372 124 322 Z" fill="#e2557b"/>
+      <path d="M220 300 Q220 336 220 366" stroke="#c73e63" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+      <!-- brush parks here while brushing the INSIDE surfaces (behind the teeth) -->
+      <g id="brushBack"></g>
+      <!-- teeth quadrants: screen position matches the child's mirror view -->
+      <g id="teeth">
+        <g id="quad-ur" class="quad"></g>
+        <g id="quad-ul" class="quad"></g>
+        <g id="quad-ll" class="quad"></g>
+        <g id="quad-lr" class="quad"></g>
+      </g>
+      <!-- gums drawn over the teeth so the crowns tuck under the gum line -->
+      <g id="gums"></g>
+      <g id="stars"></g>
+      <!-- brush parks here for outer + chewing surfaces (in front of the teeth) -->
+      <g id="brushFront">
+        <!-- toothbrush: bristle-pad centre sits at this group's origin -->
+        <g id="brush">
+          <g id="brushInner">
+            <g transform="translate(28, 16)">
+              <rect x="0" y="-9" width="120" height="18" rx="9" fill="#4aa3ff"/>
+              <rect x="0" y="-9" width="24" height="18" rx="9" fill="#2e86e0"/>
+              <rect x="-60" y="-8" width="64" height="16" rx="8" fill="#ffffff" stroke="#cdd9e5" stroke-width="2"/>
+              <g fill="#7ed957">
+                <rect class="bristle" x="-56" y="-24" width="7" height="16" rx="3" style="animation-delay:0s"/>
+                <rect class="bristle" x="-46" y="-24" width="7" height="16" rx="3" style="animation-delay:.05s"/>
+                <rect class="bristle" x="-36" y="-24" width="7" height="16" rx="3" style="animation-delay:.1s"/>
+                <rect class="bristle" x="-26" y="-24" width="7" height="16" rx="3" style="animation-delay:.15s"/>
+                <rect class="bristle" x="-16" y="-24" width="7" height="16" rx="3" style="animation-delay:.2s"/>
+                <rect class="bristle" x="-6"  y="-24" width="7" height="16" rx="3" style="animation-delay:.25s"/>
+              </g>
             </g>
           </g>
         </g>
       </g>
+      <g id="fx"></g>
     </svg>
   </div>
 
@@ -451,10 +529,10 @@
 
   // Standard dental sequence, shown mirror-style (child's right = screen right)
   const QUADS = [
-    { id: 'quad-ur', label: 'Top Right ↗️',    cx: 285, cy: 82,  edgeY: 112, flip: 1  },
-    { id: 'quad-ul', label: 'Top Left ↖️',     cx: 115, cy: 82,  edgeY: 112, flip: -1 },
-    { id: 'quad-ll', label: 'Bottom Left ↙️',  cx: 115, cy: 244, edgeY: 214, flip: -1 },
-    { id: 'quad-lr', label: 'Bottom Right ↘️', cx: 285, cy: 244, edgeY: 214, flip: 1  },
+    { id: 'quad-ur', label: 'Top Right ↗️',    upper: true,  flip: 1  },
+    { id: 'quad-ul', label: 'Top Left ↖️',     upper: true,  flip: -1 },
+    { id: 'quad-ll', label: 'Bottom Left ↙️',  upper: false, flip: -1 },
+    { id: 'quad-lr', label: 'Bottom Right ↘️', upper: false, flip: 1  },
   ];
   const SURFACES = [
     { label: '🪥 Outside the teeth' },
@@ -474,42 +552,194 @@
   const ringFg = $('ringFg'), timeText = $('timeText');
   const msgQuad = $('msgQuad'), msgSurface = $('msgSurface');
   const brushEl = $('brush');
+  const mouthSvg = $('mouthSvg');
   const pauseOverlay = $('pauseOverlay');
   const progs = [...document.querySelectorAll('.prog')];
   const RING_LEN = 2 * Math.PI * 44;
   ringFg.style.strokeDasharray = RING_LEN;
 
-  // ------- build the teeth -------
-  // 4 teeth per quadrant, arced rows; index 0 = nearest the front centre
-  const TOOTH_X = [22, 59, 96, 133];              // offset from mouth centre (x = 200)
-  const UPPER = { top: [54, 57, 62, 70], h: [48, 46, 42, 38] };
-  const LOWER = { bot: [268, 265, 260, 252], h: [42, 40, 38, 34] };
+  // ------- mouth geometry -------
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const svgEl = (n, attrs) => {
+    const e = document.createElementNS(SVG_NS, n);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  };
+  const lerp = (a, b, t) => a + (b - a) * t;
 
-  function buildQuad(q) {
-    const g = $(q.id);
-    const upper = q.cy < 163;
-    for (let i = 0; i < 4; i++) {
-      const cx = 200 + q.flip * TOOTH_X[i];
-      const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      const h = upper ? UPPER.h[i] : LOWER.h[i];
-      const y = upper ? UPPER.top[i] : LOWER.bot[i] - h;
-      r.setAttribute('x', cx - 15);
-      r.setAttribute('y', y);
-      r.setAttribute('width', 30);
-      r.setAttribute('height', h);
-      r.setAttribute('rx', 10);
-      r.setAttribute('class', 'tooth');
-      g.appendChild(r);
+  const MOUTH_CX = 220, CAV_CY = 278, CAV_RX = 158, CAV_RY = 112;
+  const N_TEETH = 5;                              // per quadrant, index 0 = front centre
+  const TOOTH_KIND = ['incisor', 'incisor', 'canine', 'premolar', 'molar'];
+  const TOOTH_W    = [34, 30, 28, 30, 34];
+  const UPPER_H    = [52, 46, 44, 38, 34];
+  const LOWER_H    = [44, 40, 38, 34, 30];
+  // tooth centres, running outward from the midline
+  const TOOTH_OFF = (() => {
+    const out = [];
+    let edge = 0;
+    for (let i = 0; i < N_TEETH; i++) { out.push(edge + TOOTH_W[i] / 2); edge += TOOTH_W[i]; }
+    return out;
+  })();
+  // gum line follows the oval mouth opening, so back teeth sit further in
+  function archHalf(off) {
+    const k = Math.min(1, off / CAV_RX);
+    return CAV_RY * Math.sqrt(Math.max(0, 1 - k * k)) - 3;
+  }
+
+  // Tooth silhouette. s = +1 for upper (biting edge below the gum), -1 for lower.
+  function toothPath(kind, cx, rootY, w, h, s) {
+    const hw = w / 2, rw = hw * 0.94;
+    const edgeY = rootY + s * h;
+    const shoulder = rootY + s * h * 0.55;
+    let d = `M${cx - rw} ${rootY} L${cx - hw} ${shoulder} `;
+    if (kind === 'canine') {
+      d += `Q${cx - hw} ${edgeY - s * 5} ${cx - hw * 0.5} ${edgeY - s * 7} `;
+      d += `Q${cx} ${edgeY + s * 9} ${cx + hw * 0.5} ${edgeY - s * 7} `;
+      d += `Q${cx + hw} ${edgeY - s * 5} ${cx + hw} ${shoulder} `;
+    } else if (kind === 'premolar' || kind === 'molar') {
+      const n = kind === 'molar' ? 3 : 2;         // chewing cusps
+      const segW = w / n;
+      d += `Q${cx - hw} ${edgeY - s * 3} ${cx - hw} ${edgeY - s * 6} `;
+      for (let k = 0; k < n; k++) {
+        const x0 = cx - hw + k * segW;
+        d += `Q${x0 + segW / 2} ${edgeY + s * 7} ${x0 + segW} ${edgeY - s * 6} `;
+      }
+      d += `Q${cx + hw} ${edgeY - s * 3} ${cx + hw} ${shoulder} `;
+    } else {                                       // incisor: flat edge, rounded corners
+      d += `Q${cx - hw} ${edgeY} ${cx - hw * 0.6} ${edgeY} `;
+      d += `L${cx + hw * 0.6} ${edgeY} `;
+      d += `Q${cx + hw} ${edgeY} ${cx + hw} ${shoulder} `;
     }
-    const star = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    star.setAttribute('x', q.cx);
-    star.setAttribute('y', upper ? q.cy - 42 : q.cy + 56);
-    star.setAttribute('text-anchor', 'middle');
-    star.setAttribute('class', 'quad-star');
+    return d + `L${cx + rw} ${rootY} Z`;
+  }
+
+  // ------- build the teeth, gums and quadrant glows -------
+  const teeth = [];        // teeth[quadrant][i] = { plaque, x, crownY, edgeY, level }
+  const stars = [];
+
+  function buildQuad(q, qi) {
+    const g = $(q.id);
+    const s = q.upper ? 1 : -1;
+    const row = [];
+    for (let i = 0; i < N_TEETH; i++) {
+      const cx = MOUTH_CX + q.flip * TOOTH_OFF[i];
+      const h = (q.upper ? UPPER_H : LOWER_H)[i];
+      const rootY = CAV_CY - s * archHalf(TOOTH_OFF[i]);
+      const d = toothPath(TOOTH_KIND[i], cx, rootY, TOOTH_W[i], h, s);
+      g.appendChild(svgEl('path', { d, class: 'tooth' }));
+      g.appendChild(svgEl('ellipse', {                       // gloss highlight
+        class: 'tooth-shine',
+        cx: cx - TOOTH_W[i] * 0.2, cy: rootY + s * h * 0.34,
+        rx: TOOTH_W[i] * 0.13, ry: h * 0.15,
+      }));
+      const plaque = svgEl('path', { d, class: 'plaque' });  // scrubbed away as he brushes
+      g.appendChild(plaque);
+      g.appendChild(svgEl('path', { d, class: 'tooth-outline' }));
+      row.push({
+        plaque, x: cx, rootY,
+        crownY: rootY + s * h * 0.52,
+        edgeY: rootY + s * h,
+        level: 0,
+      });
+    }
+    teeth[qi] = row;
+
+    // soft glow marking the active quadrant
+    const xs = row.map(t => t.x), ys = row.map(t => t.crownY);
+    g.insertBefore(svgEl('ellipse', {
+      class: 'quad-glow',
+      cx: (Math.min(...xs) + Math.max(...xs)) / 2,
+      cy: (Math.min(...ys) + Math.max(...ys)) / 2,
+      rx: (Math.max(...xs) - Math.min(...xs)) / 2 + 46,
+      ry: 58,
+    }), g.firstChild);
+
+    // gum band: a thick rounded stroke tucked over the tooth roots.
+    // Starts at the midline so the left and right bands meet without a notch.
+    const pts = [`${MOUTH_CX} ${(CAV_CY - s * (archHalf(0) + 7)).toFixed(1)}`]
+      .concat(row.map(t => `${t.x} ${(t.rootY - s * 7).toFixed(1)}`));
+    $('gums').appendChild(svgEl('path', {
+      d: 'M' + pts.join(' L'),
+      fill: 'none', stroke: '#f2879f', 'stroke-width': 30,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+    }));
+
+    const star = svgEl('text', {
+      x: (Math.min(...xs) + Math.max(...xs)) / 2,
+      y: q.upper ? CAV_CY - CAV_RY - 6 : CAV_CY + CAV_RY + 30,
+      'text-anchor': 'middle', class: 'quad-star',
+    });
     star.textContent = '⭐';
-    g.appendChild(star);
+    $('stars').appendChild(star);
+    stars[qi] = star;
   }
   QUADS.forEach(buildQuad);
+
+  // ------- effects: pooled foam, bubbles and sparkles (no per-frame DOM churn) -------
+  const fxLayer = $('fx');
+  function makePool(n, factory) {
+    const pool = [];
+    for (let i = 0; i < n; i++) { const e = factory(); fxLayer.appendChild(e); pool.push(e); }
+    return pool;
+  }
+  const foamPool = makePool(20, () => svgEl('circle', { r: 7, fill: '#ffffff', opacity: 0 }));
+  const bubblePool = makePool(8, () => svgEl('circle', {
+    r: 8, fill: 'rgba(255,255,255,.25)', stroke: '#ffffff', 'stroke-width': 2, opacity: 0,
+  }));
+  const sparkPool = makePool(10, () => svgEl('path', {
+    d: 'M0 -10 L2.8 -2.8 L10 0 L2.8 2.8 L0 10 L-2.8 2.8 L-10 0 L-2.8 -2.8 Z',
+    fill: '#fff6b8', opacity: 0,
+  }));
+  let foamI = 0, bubbleI = 0, sparkI = 0;
+
+  function play(e, frames, opts) {
+    if (e._anim) e._anim.cancel();
+    e._anim = e.animate(frames, opts);
+  }
+  function spawnFoam(x, y) {
+    const e = foamPool[foamI = (foamI + 1) % foamPool.length];
+    const dx = (Math.random() - 0.5) * 26, dy = -8 - Math.random() * 18;
+    e.setAttribute('r', (4 + Math.random() * 5).toFixed(1));
+    play(e, [
+      { transform: `translate(${x}px,${y}px) scale(.35)`, opacity: 0.85 },
+      { transform: `translate(${x + dx}px,${y + dy}px) scale(1)`, opacity: 0 },
+    ], { duration: 700 + Math.random() * 400, easing: 'ease-out' });
+  }
+  function spawnBubble(x, y) {
+    const e = bubblePool[bubbleI = (bubbleI + 1) % bubblePool.length];
+    const dx = (Math.random() - 0.5) * 50, rise = 70 + Math.random() * 50;
+    e.setAttribute('r', (5 + Math.random() * 5).toFixed(1));
+    play(e, [
+      { transform: `translate(${x}px,${y}px) scale(.4)`, opacity: 0 },
+      { transform: `translate(${x + dx * 0.4}px,${y - rise * 0.45}px) scale(1)`, opacity: 0.75, offset: 0.35 },
+      { transform: `translate(${x + dx}px,${y - rise}px) scale(1.1)`, opacity: 0 },
+    ], { duration: 2200 + Math.random() * 900, easing: 'ease-out' });
+  }
+  function spawnSparkle(x, y) {
+    const e = sparkPool[sparkI = (sparkI + 1) % sparkPool.length];
+    play(e, [
+      { transform: `translate(${x}px,${y}px) scale(.2) rotate(0deg)`, opacity: 0 },
+      { transform: `translate(${x}px,${y - 6}px) scale(1.1) rotate(70deg)`, opacity: 1, offset: 0.4 },
+      { transform: `translate(${x}px,${y - 16}px) scale(.5) rotate(140deg)`, opacity: 0 },
+    ], { duration: 850, easing: 'ease-out' });
+  }
+
+  // ------- plaque bookkeeping -------
+  // A tooth only becomes fully clean once all three surfaces have been brushed.
+  function resetTeeth() {
+    teeth.forEach(row => row.forEach(t => { t.level = 0; t.plaque.style.opacity = 1; }));
+  }
+  function cleanTeeth(qi, upTo, level) {
+    const row = teeth[qi];
+    for (let i = 0; i <= upTo && i < N_TEETH; i++) {
+      const t = row[i];
+      if (level <= t.level) continue;
+      t.level = level;
+      t.plaque.style.opacity = (3 - level) / 3;
+      spawnFoam(t.x, t.crownY);
+      if (level === 3) spawnSparkle(t.x, t.crownY);
+    }
+  }
 
   // ------- audio (synthesised, no files) -------
   let audioCtx = null;
@@ -688,38 +918,61 @@
   let lastTs = null;
   let curQuad = -1, curSurface = -1;
   let rafId = null;
+  let foamTimer = 0, bubbleTimer = 1, cheerTimer = null;
 
   function show(name) {
     Object.values(screens).forEach(s => s.classList.remove('active'));
     screens[name].classList.add('active');
   }
 
-  function placeBrush(qi, si) {
-    const q = QUADS[qi];
-    let x = q.cx, y = q.cy, rot = 0, scaleX = q.flip;
-    const upper = qi < 2;
-    if (si === 0) {                    // outside: flat on the front of the teeth
-      rot = 0;
-    } else if (si === 1) {             // inside: tucked behind, tilted the other way
-      rot = upper ? 18 : -18;
-      y += upper ? 10 : -10;
-    } else {                           // chewing tops: along the biting edge
-      y = q.edgeY + (upper ? 14 : -14);
-      rot = upper ? 0 : 180;
-      if (!upper) scaleX = -q.flip;    // keep the handle pointing outward when upside down
+  // The brush sweeps front-to-back and back again across the quadrant during
+  // each surface segment, so every tooth actually gets covered.
+  const SWEEPS_PER_SURFACE = 2;
+  function sweepU(sp) {
+    const p = (sp * SWEEPS_PER_SURFACE) % 1;
+    return p < 0.5 ? p * 2 : (1 - p) * 2;
+  }
+
+  function brushTarget(qi, si, u) {
+    const q = QUADS[qi], row = teeth[qi];
+    const s = q.upper ? 1 : -1;
+    const f = u * (N_TEETH - 1);
+    const i = Math.min(N_TEETH - 2, Math.floor(f));
+    const t = Math.min(1, f - i);
+    const a = row[i], b = row[i + 1];
+    let y, tilt;
+    if (si === 2) {                    // chewing tops: flat along the biting edge
+      y = lerp(a.edgeY, b.edgeY, t) + s * 16;
+      tilt = 0;
+    } else {                           // outer / inner faces, angled at the gum line
+      y = lerp(a.crownY, b.crownY, t) + (si === 1 ? s * 8 : 0);
+      tilt = si === 0 ? 12 : -10;
     }
+    return {
+      x: lerp(a.x, b.x, t),
+      y,
+      rot: (q.upper ? 0 : 180) + tilt,
+      sx: q.upper ? q.flip : -q.flip,  // keep the handle pointing out of the mouth
+    };
+  }
+
+  let bx = MOUTH_CX, by = CAV_CY;
+  function moveBrush(target, dt) {
+    const k = dt ? 1 - Math.exp(-dt * 9) : 1;     // smooth follow, no CSS transition
+    bx += (target.x - bx) * k;
+    by += (target.y - by) * k;
     brushEl.style.transform =
-      `translate(${x}px, ${y}px) scaleX(${scaleX}) rotate(${rot}deg)`;
+      `translate(${bx.toFixed(1)}px, ${by.toFixed(1)}px) scale(${target.sx},1) rotate(${target.rot}deg)`;
   }
 
   function setQuadClasses() {
     QUADS.forEach((q, i) => {
-      const g = $(q.id);
-      g.classList.toggle('active', i === curQuad && state !== 'done');
-      g.classList.toggle('done', i < curQuad || state === 'done');
+      const done = i < curQuad || state === 'done';
+      $(q.id).classList.toggle('active', i === curQuad && state !== 'done');
+      stars[i].classList.toggle('on', done);
       progs[i].classList.toggle('active', i === curQuad && state !== 'done');
-      progs[i].classList.toggle('done', i < curQuad || state === 'done');
-      progs[i].textContent = (i < curQuad || state === 'done') ? '⭐' : '🦷';
+      progs[i].classList.toggle('done', done);
+      progs[i].textContent = done ? '⭐' : '🦷';
     });
   }
 
@@ -730,22 +983,49 @@
     el.classList.add('pop');
   }
 
+  function cheer() {                    // brief happy face when a quadrant is finished
+    mouthSvg.classList.add('happy');
+    clearTimeout(cheerTimer);
+    cheerTimer = setTimeout(() => mouthSvg.classList.remove('happy'), 1500);
+  }
+
   function updatePhase() {
     const qi = Math.min(3, Math.floor(elapsed / QUAD_SECONDS));
     const si = Math.min(2, Math.floor((elapsed % QUAD_SECONDS) / SURFACE_SECONDS));
     if (qi !== curQuad) {
-      if (curQuad !== -1) sfx.quadrant();
+      if (curQuad !== -1) { sfx.quadrant(); cheer(); }
       curQuad = qi;
       curSurface = si;
       popText(msgQuad, QUADS[qi].label);
       popText(msgSurface, SURFACES[si].label);
       setQuadClasses();
-      placeBrush(qi, si);
     } else if (si !== curSurface) {
       curSurface = si;
       sfx.surface();
       popText(msgSurface, SURFACES[si].label);
-      placeBrush(qi, si);
+    }
+  }
+
+  // brush position + plaque removal, driven by where we are in the surface segment
+  function updateBrushing(dt) {
+    const sp = (elapsed % SURFACE_SECONDS) / SURFACE_SECONDS;
+    const u = sweepU(sp);
+    moveBrush(brushTarget(curQuad, curSurface, u), dt);
+    cleanTeeth(curQuad, Math.floor(u * (N_TEETH - 1)), curSurface + 1);
+
+    // the inner surfaces are brushed from behind the teeth
+    const layer = curSurface === 1 ? $('brushBack') : $('brushFront');
+    if (brushEl.parentNode !== layer) layer.appendChild(brushEl);
+
+    foamTimer -= dt;
+    if (foamTimer <= 0) {
+      foamTimer = 0.3;
+      spawnFoam(bx + (Math.random() - 0.5) * 24, by + (Math.random() - 0.5) * 16);
+    }
+    bubbleTimer -= dt;
+    if (bubbleTimer <= 0) {
+      bubbleTimer = 1.3 + Math.random() * 0.9;
+      spawnBubble(bx + (Math.random() - 0.5) * 40, by);
     }
   }
 
@@ -758,13 +1038,15 @@
 
   function loop(ts) {
     if (state !== 'brushing') return;
+    let dt = 0;
     if (lastTs !== null) {
-      const dt = Math.min((ts - lastTs) / 1000, 0.5) * SPEED;
+      dt = Math.min((ts - lastTs) / 1000, 0.5) * SPEED;
       elapsed += dt;
     }
     lastTs = ts;
     if (elapsed >= TOTAL_SECONDS) { finish(); return; }
     updatePhase();
+    updateBrushing(dt);
     updateClock();
     rafId = requestAnimationFrame(loop);
   }
@@ -780,7 +1062,12 @@
     screens.brush.classList.remove('paused');
     pauseOverlay.classList.remove('show');
     show('brush');
+    resetTeeth();
+    mouthSvg.classList.remove('happy');
+    foamTimer = 0;
+    bubbleTimer = 1;
     updatePhase();
+    moveBrush(brushTarget(curQuad, curSurface, 0), 0);   // start on the first tooth
     updateClock();
     requestWakeLock();
     cancelAnimationFrame(rafId);
@@ -808,7 +1095,9 @@
   function finish() {
     state = 'done';
     cancelAnimationFrame(rafId);
+    for (let qi = 0; qi < QUADS.length; qi++) cleanTeeth(qi, N_TEETH - 1, 3);
     setQuadClasses();
+    cheer();
     if (currentUser) {
       currentUser.brushCount = (currentUser.brushCount || 0) + 1;
       saveUsers();

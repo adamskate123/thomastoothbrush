@@ -7,18 +7,35 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Toothbrush">
-<meta name="theme-color" content="#7fd8f7">
+<meta name="theme-color" content="#d4e9de">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <title>Thomas's Toothbrush Timer</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg-top: #d4e9de;      /* soft sage mist */
+    --bg-mid: #e6eee0;
+    --bg-bottom: #f6ecdf;   /* warm cream */
+    --ink: #33505e;         /* deep slate */
+    --ink-soft: #6e8a97;
+    --card: rgba(255,255,255,.74);
+    --accent: #ef9463;      /* warm coral */
+    --accent-deep: #d97244;
+    --accent-shadow: #b95c33;
+    --mint: #93cfae;
+    --mint-dark: #63a888;
+    --mint-light: #c7e8d6;
+    --rose: #b06d7d;
+    --gum: #d98b9c;
+    --gold: #ecc069;
+  }
   html, body { height: 100%; overflow: hidden; }
   body {
-    font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Comic Sans MS", "Comic Sans", sans-serif;
-    background: linear-gradient(180deg, #7fd8f7 0%, #b6f0e3 60%, #d8f7c9 100%);
-    color: #24425c;
+    font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", system-ui, sans-serif;
+    background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 55%, var(--bg-bottom) 100%);
+    color: var(--ink);
     touch-action: manipulation;
     user-select: none;
     -webkit-user-select: none;
@@ -38,23 +55,23 @@
   }
   .screen.active { display: flex; }
 
-  h1 { font-size: clamp(1.6rem, 5vw, 2.6rem); margin-bottom: 4px; }
-  .subtitle { font-size: clamp(1rem, 3vw, 1.4rem); opacity: .8; margin-bottom: 18px; }
+  h1 { font-size: clamp(1.6rem, 5vw, 2.6rem); margin-bottom: 4px; letter-spacing: -.01em; }
+  .subtitle { font-size: clamp(1rem, 3vw, 1.4rem); color: var(--ink-soft); margin-bottom: 18px; }
 
   .big-btn {
     font-family: inherit;
     font-size: clamp(1.4rem, 5vw, 2.2rem);
     font-weight: 700;
     color: #fff;
-    background: linear-gradient(180deg, #ff9f43, #ff7846);
+    background: linear-gradient(180deg, var(--accent), var(--accent-deep));
     border: none;
     border-radius: 60px;
     padding: 22px 54px;
-    box-shadow: 0 8px 0 #d95d2f, 0 12px 24px rgba(0,0,0,.18);
+    box-shadow: 0 7px 0 var(--accent-shadow), 0 12px 22px rgba(51,80,94,.16);
     cursor: pointer;
     transition: transform .1s ease;
   }
-  .big-btn:active { transform: translateY(5px); box-shadow: 0 3px 0 #d95d2f; }
+  .big-btn:active { transform: translateY(4px); box-shadow: 0 3px 0 var(--accent-shadow); }
 
   #muteBtn {
     position: absolute;
@@ -65,7 +82,7 @@
     width: 56px; height: 56px;
     border-radius: 50%;
     border: none;
-    background: rgba(255,255,255,.75);
+    background: var(--card);
     box-shadow: 0 3px 8px rgba(0,0,0,.15);
     cursor: pointer;
   }
@@ -121,9 +138,9 @@
     box-shadow: 0 2px 6px rgba(0,0,0,.2);
   }
   .plus-bubble .avatar-circle {
-    background: rgba(255,255,255,.55);
-    border: 4px dashed #6fb8d9;
-    color: #3d7ea6;
+    background: rgba(255,255,255,.5);
+    border: 4px dashed var(--mint-dark);
+    color: var(--mint-dark);
     box-shadow: none;
   }
 
@@ -133,9 +150,9 @@
     font-size: clamp(1.3rem, 4.5vmin, 1.8rem);
     font-weight: 700;
     text-align: center;
-    color: #24425c;
+    color: var(--ink);
     background: rgba(255,255,255,.85);
-    border: 3px solid #6fb8d9;
+    border: 3px solid var(--mint-dark);
     border-radius: 40px;
     padding: 12px 20px;
     width: min(80vw, 340px);
@@ -143,7 +160,7 @@
     user-select: text;
     -webkit-user-select: text;
   }
-  #nameInput:focus { border-color: #ff9f43; }
+  #nameInput:focus { border-color: var(--accent); }
   .picker-label { margin: 16px 0 8px; font-size: clamp(1rem, 3vmin, 1.25rem); font-weight: 700; opacity: .75; }
   #emojiGrid, #colorGrid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 580px; }
   .emoji-opt {
@@ -166,13 +183,13 @@
     padding: 0;
   }
   .emoji-opt.selected, .color-opt.selected {
-    border-color: #24425c;
-    box-shadow: 0 0 0 4px rgba(255,255,255,.9), 0 0 0 7px #ff9f43;
+    border-color: var(--ink);
+    box-shadow: 0 0 0 4px rgba(255,255,255,.9), 0 0 0 7px var(--accent);
   }
   #editBtns { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 22px; }
   .small-btn { box-shadow: 0 3px 8px rgba(0,0,0,.12); }
-  .small-btn.danger { background: #ff6b6b; color: #fff; }
-  .small-btn.danger.confirm { background: #d63031; }
+  .small-btn.danger { background: #d98b8b; color: #fff; }
+  .small-btn.danger.confirm { background: #c25f5f; }
   .back-btn {
     position: absolute;
     top: max(14px, env(safe-area-inset-top));
@@ -180,11 +197,11 @@
     z-index: 50;
     font-size: 1.5rem;
     font-weight: 800;
-    color: #24425c;
+    color: var(--ink);
     width: 56px; height: 56px;
     border-radius: 50%;
     border: none;
-    background: rgba(255,255,255,.75);
+    background: var(--card);
     box-shadow: 0 3px 8px rgba(0,0,0,.15);
     cursor: pointer;
     font-family: inherit;
@@ -209,7 +226,7 @@
   #timerWrap { position: relative; width: clamp(84px, 16vmin, 130px); height: clamp(84px, 16vmin, 130px); flex: 0 0 auto; }
   #timerWrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
   #ringBg { fill: none; stroke: rgba(255,255,255,.6); stroke-width: 10; }
-  #ringFg { fill: none; stroke: #ff7846; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset .3s linear; }
+  #ringFg { fill: none; stroke: var(--accent-deep); stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset .3s linear; }
   #timeText {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
@@ -223,7 +240,7 @@
   #msgSurface {
     font-size: clamp(1.05rem, 4vmin, 1.6rem);
     margin-top: 4px;
-    background: rgba(255,255,255,.7);
+    background: var(--card);
     border-radius: 30px;
     padding: 6px 18px;
     display: inline-block;
@@ -238,7 +255,7 @@
   .tooth { fill: #ffffff; }
   .tooth-shine { fill: #ffffff; opacity: .8; }
   .tooth-outline { fill: none; stroke: #d5dde6; stroke-width: 2; stroke-linejoin: round; }
-  .plaque { fill: url(#plaquePat); transition: opacity .5s ease; }
+  .plaque { fill: #f0dfb8; transition: opacity .5s ease; }
 
   /* quadrant highlight: pulsing opacity on a soft gradient (cheap on iPad,
      unlike animating a drop-shadow filter, which re-rasterizes every frame) */
@@ -286,21 +303,21 @@
   .prog {
     width: clamp(48px, 10vmin, 68px); height: clamp(48px, 10vmin, 68px);
     border-radius: 50%;
-    background: rgba(255,255,255,.7);
+    background: var(--card);
     display: flex; align-items: center; justify-content: center;
     font-size: clamp(1.5rem, 6vmin, 2.2rem);
     box-shadow: 0 3px 6px rgba(0,0,0,.12);
     transition: background .3s ease;
   }
-  .prog.active { background: #ffd93d; animation: bounce .7s ease-in-out infinite; }
-  .prog.done { background: #b8f2c9; }
+  .prog.active { background: var(--gold); animation: bounce .7s ease-in-out infinite; }
+  .prog.done { background: var(--mint-light); }
   @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
   /* pause overlay */
   #pauseOverlay {
     display: none;
     position: absolute; inset: 0;
-    background: rgba(36, 66, 92, .55);
+    background: rgba(51, 80, 94, .6);
     z-index: 40;
     flex-direction: column;
     align-items: center;
@@ -315,7 +332,7 @@
     font-family: inherit;
     font-size: clamp(1rem, 3.5vw, 1.3rem);
     font-weight: 700;
-    color: #24425c;
+    color: var(--ink);
     background: rgba(255,255,255,.92);
     border: none;
     border-radius: 40px;
@@ -343,14 +360,25 @@
 <!-- ================= CHOOSE USER ================= -->
 <div id="screen-users" class="screen active">
   <svg id="usersTooth" viewBox="0 0 120 120" aria-hidden="true">
-    <path d="M60 8 C34 8 20 26 20 46 c0 16 6 24 10 40 c3 12 5 26 14 26 c10 0 6-22 16-22 s6 22 16 22 c9 0 11-14 14-26 c4-16 10-24 10-40 C100 26 86 8 60 8 Z"
-          fill="#ffffff" stroke="#cdd9e5" stroke-width="4"/>
-    <circle cx="45" cy="46" r="5" fill="#24425c"/>
-    <circle cx="75" cy="46" r="5" fill="#24425c"/>
-    <path d="M44 62 Q60 76 76 62" fill="none" stroke="#24425c" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="34" cy="58" r="6" fill="#ffb3c1" opacity=".8"/>
-    <circle cx="86" cy="58" r="6" fill="#ffb3c1" opacity=".8"/>
-    <path d="M88 20 l3 7 7 3 -7 3 -3 7 -3-7 -7-3 7-3 Z" fill="#ffd93d"/>
+    <circle cx="48" cy="28" r="7" fill="#63a888"/>
+    <circle cx="60" cy="24" r="8" fill="#63a888"/>
+    <circle cx="72" cy="28" r="7" fill="#63a888"/>
+    <path d="M60 32 C88 32 104 50 104 73 C104 95 86 108 60 108 C34 108 16 95 16 73 C16 50 32 32 60 32 Z"
+          fill="#93cfae" stroke="#63a888" stroke-width="3.5"/>
+    <circle cx="40" cy="45" r="16" fill="#93cfae" stroke="#63a888" stroke-width="3.5"/>
+    <circle cx="80" cy="45" r="16" fill="#93cfae" stroke="#63a888" stroke-width="3.5"/>
+    <circle cx="40" cy="45" r="9.5" fill="#ffffff"/>
+    <circle cx="80" cy="45" r="9.5" fill="#ffffff"/>
+    <circle cx="41" cy="46" r="5.5" fill="#33505e"/>
+    <circle cx="81" cy="46" r="5.5" fill="#33505e"/>
+    <circle cx="43" cy="43" r="2" fill="#ffffff"/>
+    <circle cx="83" cy="43" r="2" fill="#ffffff"/>
+    <ellipse cx="60" cy="86" rx="29" ry="19" fill="#c7e8d6"/>
+    <ellipse cx="52" cy="78" rx="3.4" ry="2.5" fill="#63a888"/>
+    <ellipse cx="68" cy="78" rx="3.4" ry="2.5" fill="#63a888"/>
+    <path d="M47 88 Q60 98 73 88" fill="none" stroke="#63a888" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M67 90 l3.6 -7 3.6 7 Z" fill="#ffffff"/>
+    <path d="M100 22 l2.6 6.4 6.4 2.6 -6.4 2.6 -2.6 6.4 -2.6-6.4 -6.4-2.6 6.4-2.6 Z" fill="#ecc069"/>
   </svg>
   <h1>Who's brushing?</h1>
   <p class="subtitle" id="usersHint">Tap the + to add a brusher!</p>
@@ -399,53 +427,65 @@
   </div>
 
   <div id="mouthBox">
-    <svg id="mouthSvg" viewBox="0 0 440 430" aria-label="Cartoon face showing which teeth to brush">
+    <svg id="mouthSvg" viewBox="0 0 480 500" aria-label="Friendly cartoon dinosaur showing which teeth to brush">
       <defs>
-        <pattern id="plaquePat" width="12" height="12" patternUnits="userSpaceOnUse">
-          <rect width="12" height="12" fill="#e6d5a2"/>
-          <circle cx="3" cy="4" r="1.9" fill="#d3ba79"/>
-          <circle cx="9" cy="9" r="1.5" fill="#dbc68c"/>
-        </pattern>
         <radialGradient id="glowGrad">
           <stop offset="0%" stop-color="#fff4c2" stop-opacity=".55"/>
           <stop offset="100%" stop-color="#fff4c2" stop-opacity="0"/>
         </radialGradient>
-        <clipPath id="eyeClip"><circle cx="0" cy="0" r="30"/></clipPath>
+        <clipPath id="eyeClip"><circle cx="0" cy="0" r="26"/></clipPath>
       </defs>
 
-      <!-- head + cheeks -->
-      <ellipse cx="220" cy="220" rx="206" ry="203" fill="#ffd9b0" stroke="#f0b98a" stroke-width="4"/>
-      <ellipse cx="62" cy="178" rx="30" ry="20" fill="#ff9ab0" opacity=".55"/>
-      <ellipse cx="378" cy="178" rx="30" ry="20" fill="#ff9ab0" opacity=".55"/>
+      <!-- scutes and eye turrets sit behind the head, so the head crops them into
+           bumps rather than leaving a seam where the circles overlap -->
+      <circle cx="200" cy="66" r="14" fill="#63a888"/>
+      <circle cx="240" cy="58" r="16" fill="#63a888"/>
+      <circle cx="280" cy="66" r="14" fill="#63a888"/>
+      <circle cx="150" cy="44" r="42" fill="#93cfae" stroke="#63a888" stroke-width="5"/>
+      <circle cx="330" cy="44" r="42" fill="#93cfae" stroke="#63a888" stroke-width="5"/>
 
-      <!-- eyes -->
-      <g transform="translate(148,96)">
-        <circle class="eye-white" r="30" fill="#ffffff" stroke="#e8c49b" stroke-width="2"/>
-        <g class="eye-ball" clip-path="url(#eyeClip)">
-          <circle cx="0" cy="4" r="14" fill="#24425c"/>
-          <circle cx="6" cy="-3" r="5" fill="#ffffff" opacity=".9"/>
-          <ellipse class="lid" cx="0" cy="-66" rx="32" ry="32" fill="#ffd9b0"/>
-        </g>
-        <path class="eye-happy" d="M-18 6 Q0 -14 18 6" fill="none" stroke="#24425c" stroke-width="6" stroke-linecap="round"/>
-      </g>
-      <g transform="translate(292,96)">
-        <circle class="eye-white" r="30" fill="#ffffff" stroke="#e8c49b" stroke-width="2"/>
-        <g class="eye-ball" clip-path="url(#eyeClip)">
-          <circle cx="0" cy="4" r="14" fill="#24425c"/>
-          <circle cx="6" cy="-3" r="5" fill="#ffffff" opacity=".9"/>
-          <ellipse class="lid" cx="0" cy="-66" rx="32" ry="32" fill="#ffd9b0"/>
-        </g>
-        <path class="eye-happy" d="M-18 6 Q0 -14 18 6" fill="none" stroke="#24425c" stroke-width="6" stroke-linecap="round"/>
-      </g>
-      <path class="brow" d="M118 54 Q148 38 178 54" fill="none" stroke="#c98b53" stroke-width="8" stroke-linecap="round"/>
-      <path class="brow" d="M262 54 Q292 38 322 54" fill="none" stroke="#c98b53" stroke-width="8" stroke-linecap="round"/>
+      <!-- one continuous head silhouette, so the snout and jaw read as a single
+           creature rather than two stacked blocks -->
+      <path d="M240 62 C158 62 84 100 68 182 C52 268 50 366 86 420
+               C122 476 358 476 394 420 C430 366 428 268 412 182
+               C396 100 322 62 240 62 Z"
+            fill="#93cfae" stroke="#63a888" stroke-width="5" stroke-linejoin="round"/>
+      <ellipse cx="240" cy="420" rx="120" ry="40" fill="#c7e8d6" opacity=".8"/>
 
-      <!-- mouth: lips, then the dark opening -->
-      <ellipse cx="220" cy="278" rx="180" ry="136" fill="#ff6b8a"/>
-      <ellipse cx="220" cy="278" rx="158" ry="112" fill="#5e1b31"/>
-      <!-- tongue (behind everything in the mouth) -->
-      <path d="M124 322 Q220 268 316 322 Q310 372 220 376 Q130 372 124 322 Z" fill="#e2557b"/>
-      <path d="M220 300 Q220 336 220 366" stroke="#c73e63" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- the mouth: interior in warm muted rose with a soft throat, not a void.
+           Its outline is exactly the cavity ellipse the tooth geometry is built from. -->
+      <ellipse cx="240" cy="278" rx="158" ry="112" fill="#b06d7d" stroke="#63a888" stroke-width="6"/>
+      <ellipse cx="240" cy="304" rx="88" ry="42" fill="#9a5c6c" opacity=".28"/>
+
+      <!-- nostrils on the snout -->
+      <ellipse cx="208" cy="140" rx="11" ry="8" fill="#7bbb9b" transform="rotate(-14 208 140)"/>
+      <ellipse cx="272" cy="140" rx="11" ry="8" fill="#7bbb9b" transform="rotate(14 272 140)"/>
+
+      <!-- eyes, sitting in the turrets that poke above the head -->
+      <g transform="translate(150,40)">
+        <circle class="eye-white" r="26" fill="#ffffff"/>
+        <g class="eye-ball" clip-path="url(#eyeClip)">
+          <circle cx="1" cy="2" r="17" fill="#33505e"/>
+          <circle cx="7" cy="-5" r="6" fill="#ffffff" opacity=".95"/>
+          <circle cx="-5" cy="8" r="3" fill="#ffffff" opacity=".55"/>
+          <ellipse class="lid" cx="0" cy="-60" rx="28" ry="29" fill="#93cfae"/>
+        </g>
+        <path class="eye-happy" d="M-17 5 Q0 -13 17 5" fill="none" stroke="#33505e" stroke-width="6" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(330,40)">
+        <circle class="eye-white" r="26" fill="#ffffff"/>
+        <g class="eye-ball" clip-path="url(#eyeClip)">
+          <circle cx="-1" cy="2" r="17" fill="#33505e"/>
+          <circle cx="5" cy="-5" r="6" fill="#ffffff" opacity=".95"/>
+          <circle cx="-7" cy="8" r="3" fill="#ffffff" opacity=".55"/>
+          <ellipse class="lid" cx="0" cy="-60" rx="28" ry="29" fill="#93cfae"/>
+        </g>
+        <path class="eye-happy" d="M-17 5 Q0 -13 17 5" fill="none" stroke="#33505e" stroke-width="6" stroke-linecap="round"/>
+      </g>
+
+      <!-- tongue (behind the teeth) -->
+      <path d="M160 330 Q240 292 320 330 Q314 372 240 376 Q166 372 160 330 Z" fill="#e79aa9"/>
+      <path d="M240 312 Q240 342 240 368" stroke="#d0808f" stroke-width="5" fill="none" stroke-linecap="round"/>
 
       <!-- brush parks here while brushing the INSIDE surfaces (behind the teeth) -->
       <g id="brushBack"></g>
@@ -503,13 +543,23 @@
 <div id="screen-done" class="screen">
   <div id="confetti"></div>
   <svg id="doneTooth" viewBox="0 0 120 120" aria-hidden="true">
-    <path d="M60 8 C34 8 20 26 20 46 c0 16 6 24 10 40 c3 12 5 26 14 26 c10 0 6-22 16-22 s6 22 16 22 c9 0 11-14 14-26 c4-16 10-24 10-40 C100 26 86 8 60 8 Z"
-          fill="#ffffff" stroke="#cdd9e5" stroke-width="4"/>
-    <path d="M38 44 l4 9 9 4 -9 4 -4 9 -4-9 -9-4 9-4 Z" fill="#ffd93d"/>
-    <path d="M82 44 l4 9 9 4 -9 4 -4 9 -4-9 -9-4 9-4 Z" fill="#ffd93d"/>
-    <path d="M42 66 Q60 84 78 66" fill="none" stroke="#24425c" stroke-width="4" stroke-linecap="round"/>
-    <path d="M14 14 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5-6 -6-2.5 6-2.5 Z" fill="#7fd8f7"/>
-    <path d="M102 96 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5-6 -6-2.5 6-2.5 Z" fill="#7fd8f7"/>
+    <circle cx="48" cy="28" r="7" fill="#63a888"/>
+    <circle cx="60" cy="24" r="8" fill="#63a888"/>
+    <circle cx="72" cy="28" r="7" fill="#63a888"/>
+    <path d="M60 32 C88 32 104 50 104 73 C104 95 86 108 60 108 C34 108 16 95 16 73 C16 50 32 32 60 32 Z"
+          fill="#93cfae" stroke="#63a888" stroke-width="3.5"/>
+    <circle cx="40" cy="45" r="16" fill="#93cfae" stroke="#63a888" stroke-width="3.5"/>
+    <circle cx="80" cy="45" r="16" fill="#93cfae" stroke="#63a888" stroke-width="3.5"/>
+    <path d="M32 47 Q40 38 48 47" fill="none" stroke="#33505e" stroke-width="4" stroke-linecap="round"/>
+    <path d="M72 47 Q80 38 88 47" fill="none" stroke="#33505e" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="60" cy="86" rx="29" ry="19" fill="#c7e8d6"/>
+    <ellipse cx="52" cy="78" rx="3.4" ry="2.5" fill="#63a888"/>
+    <ellipse cx="68" cy="78" rx="3.4" ry="2.5" fill="#63a888"/>
+    <path d="M46 86 Q60 100 74 86 Z" fill="#33505e" opacity=".85"/>
+    <path d="M50 88 l0 5 l5 0 l0 -5 Z" fill="#ffffff"/>
+    <path d="M65 88 l0 5 l5 0 l0 -5 Z" fill="#ffffff"/>
+    <path d="M12 20 l2.8 6.8 6.8 2.8 -6.8 2.8 -2.8 6.8 -2.8-6.8 -6.8-2.8 6.8-2.8 Z" fill="#ecc069"/>
+    <path d="M104 90 l2.4 5.8 5.8 2.4 -5.8 2.4 -2.4 5.8 -2.4-5.8 -5.8-2.4 5.8-2.4 Z" fill="#ecc069"/>
   </svg>
   <h1>All clean! 🎉</h1>
   <p class="subtitle" id="doneSubtitle">Amazing brushing, superstar!</p>
@@ -567,7 +617,7 @@
   };
   const lerp = (a, b, t) => a + (b - a) * t;
 
-  const MOUTH_CX = 220, CAV_CY = 278, CAV_RX = 158, CAV_RY = 112;
+  const MOUTH_CX = 240, CAV_CY = 278, CAV_RX = 158, CAV_RY = 112;
   const N_TEETH = 5;                              // per quadrant, index 0 = front centre
   const TOOTH_KIND = ['incisor', 'incisor', 'canine', 'premolar', 'molar'];
   const TOOTH_W    = [34, 30, 28, 30, 34];
@@ -660,7 +710,7 @@
       .concat(row.map(t => `${t.x} ${(t.rootY - s * 7).toFixed(1)}`));
     $('gums').appendChild(svgEl('path', {
       d: 'M' + pts.join(' L'),
-      fill: 'none', stroke: '#f2879f', 'stroke-width': 30,
+      fill: 'none', stroke: '#d98b9c', 'stroke-width': 30,
       'stroke-linecap': 'round', 'stroke-linejoin': 'round',
     }));
 
@@ -688,7 +738,7 @@
   }));
   const sparkPool = makePool(10, () => svgEl('path', {
     d: 'M0 -10 L2.8 -2.8 L10 0 L2.8 2.8 L0 10 L-2.8 2.8 L-10 0 L-2.8 -2.8 Z',
-    fill: '#fff6b8', opacity: 0,
+    fill: '#ffe9a8', opacity: 0,
   }));
   let foamI = 0, bubbleI = 0, sparkI = 0;
 
@@ -786,7 +836,7 @@
 
   // ------- user profiles -------
   const AVATAR_EMOJIS = ['🦁', '🦄', '🤖', '🐸', '🦖', '🚀', '🐱', '🐶', '🐼', '🦊', '🐙', '⚽'];
-  const AVATAR_COLORS = ['#ffd93d', '#7fd8f7', '#b8f2c9', '#ffb3c1', '#b28dff', '#ff9f43'];
+  const AVATAR_COLORS = ['#f5d78e', '#a8d8ea', '#bfe3c6', '#f3b7c2', '#c9b8e8', '#f2b880'];
   let users = [];
   try {
     const stored = JSON.parse(localStorage.getItem('tt-users'));
@@ -1123,7 +1173,7 @@
   }
 
   // ------- confetti -------
-  const CONFETTI_COLORS = ['#ff6b8a', '#ffd93d', '#7fd8f7', '#7ed957', '#ff9f43', '#b28dff'];
+  const CONFETTI_COLORS = ['#e8899b', '#ecc069', '#a8d8ea', '#93cfae', '#ef9463', '#c9b8e8'];
   function launchConfetti() {
     const box = $('confetti');
     box.innerHTML = '';

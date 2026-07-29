@@ -11,8 +11,8 @@ The mouth is shown **mirror-style**: "Top Right" lights up on the right side of 
 - 👨‍👩‍👧‍👦 Multiple brushers: a start menu where each kid picks their own profile (name + emoji character + bubble color). First launch shows just a **+** button — add brushers over time. Tap a profile to brush; press-and-hold it to change or delete it.
 - ⭐ Brush counter per brusher: every finished 2-minute brush adds a star to their profile and gets a shout-out on the celebration screen ("That's brush #12, Thomas!")
 - ⏱️ Accurate 2-minute countdown with a progress ring
-- 😀 A friendly cartoon character whose mouth he brushes — it blinks, and grins each time a quadrant is finished
-- ✨ **Teeth that visibly get cleaner**: they start dull and speckled, and each one turns bright white only after all three of its surfaces have been brushed, with foam, bubbles and a sparkle when it's done
+- 🦕 A friendly cartoon dinosaur whose teeth he brushes — it blinks, and grins each time a quadrant is finished
+- ✨ **Teeth that visibly get cleaner**: they start a soft cream colour, and each one turns bright white only after all three of its surfaces have been brushed, with foam, bubbles and a sparkle when it's done
 - 🦷 Properly shaped teeth (incisors, canines, premolars, molars) and gums, with a toothbrush that sweeps tooth-by-tooth across the quadrant at the correct angle for each surface
 - 🔊 Gentle chimes when it's time to move on, fanfare at the end (mute button included, remembered between visits)
 - ⭐ Stars for each finished quadrant and a confetti "All clean!" screen
